@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMatch | Premium AI Movie Recommendation System</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Discover your next favorite movie with CineMatch. Powered by a custom Content-Based Machine Learning model using TF-IDF and Cosine Similarity.">
+    <meta name="keywords" content="movie recommendations, machine learning, flask, content-based recommendation, TMDB, cinematic, similar movies">
+    <meta name="author" content="Antigravity AI">
+    
+    <!-- Google Fonts - Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark-theme">
+    
+    <!-- Background Glow Effects -->
+    <div class="glow-bg-primary"></div>
+    <div class="glow-bg-secondary"></div>
+
+    <!-- Navigation Header -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo" id="nav-logo">
+                <i class="fa-solid fa-clapperboard logo-icon"></i>
+                <span class="logo-text">Cine<span class="logo-accent">Match</span></span>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="#hero-section" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="#popular-section" class="nav-link"><i class="fa-solid fa-fire"></i> Popular</a>
+                <a href="#trending-section" class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Trending</a>
+                <a href="#" class="nav-link" id="favorites-toggle"><i class="fa-solid fa-heart"></i> Favorites <span class="fav-count-badge" id="fav-badge">0</span></a>
+            </nav>
+
+            <div class="nav-actions">
+                <button class="action-btn" id="theme-toggle" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <a href="https://github.com" target="_blank" class="action-btn" title="GitHub Source" rel="noopener noreferrer">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Drawer: Favorites Drawer -->
+    <div class="drawer" id="favorites-drawer">
+        <div class="drawer-header">
+            <h3><i class="fa-solid fa-heart text-accent"></i> My Favorites</h3>
+            <button class="close-drawer-btn" id="close-drawer-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="drawer-content" id="favorites-list-container">
+            <!-- Dynamically populated favorites list -->
+            <div class="empty-state">
+                <i class="fa-solid fa-heart-crack empty-icon"></i>
+                <p>No favorite movies bookmarked yet.</p>
+            </div>
+        </div>
+    </div>
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+
+    <!-- Main Container -->
+    <main class="main-content">
+        
+        <!-- Hero Search Section -->
+        <section class="hero-section" id="hero-section">
+            <div class="hero-backdrop" id="hero-backdrop"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-wrapper">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    <span class="badge-text">AI-POWERED RECOMMENDER ENGINE</span>
+                </div>
+                <h1 class="hero-title">Movie Recommendation System</h1>
+                <p class="hero-subtitle">Discover movies you'll love using AI-powered content-based recommendations.</p>
+                
+                <!-- Search bar wrapper -->
+                <div class="search-container">
+                    <div class="search-bar-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon-left"></i>
+                        <input type="text" id="movie-search-input" placeholder="Search Movie..." autocomplete="off">
+                        <button class="clear-search-btn" id="clear-search-btn"><i class="fa-solid fa-xmark"></i></button>
+                        <button class="btn btn-primary btn-search" id="recommend-btn">
+                            <span>Recommend</span>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Autocomplete dropdown -->
+                    <div class="search-autocomplete-dropdown" id="autocomplete-dropdown">
+                        <!-- suggestions injected here -->
+                    </div>
+                </div>
+
+                <!-- Recent Searches -->
+                <div class="recent-searches" id="recent-searches-container">
+                    <span class="recent-label">Recent searches:</span>
+                    <div class="recent-tags" id="recent-searches-tags">
+                        <!-- tags injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations Section (Hidden by default, shown on recommend action) -->
+        <section class="recommendations-section hidden" id="recommendations-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <div>
+                        <span class="section-category">Results</span>
+                        <h2 class="section-title" id="recommendations-title">Recommendations for You</h2>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="close-results-btn">
+                        <i class="fa-solid fa-circle-xmark"></i> Clear Results
+                    </button>
+                </div>
+
+                <!-- Searched Movie Summary Card -->
+                <div class="searched-movie-summary" id="searched-movie-summary">
+                    <!-- Injected details of the input movie -->
+                </div>
+
+                <div class="cards-grid" id="recommendations-grid">
+                    <!-- Recommendation cards injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Trending Section (Carousel) -->
+        <section class="trending-section" id="trending-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <div>
+                        <span class="section-category">What's Hot</span>
+                        <h2 class="section-title">Trending Movies</h2>
+                    </div>
+                    <div class="carousel-controls">
+                        <button class="carousel-arrow" id="trend-prev" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="carousel-arrow" id="trend-next" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Carousel wrapper -->
+                <div class="carousel-track-container">
+                    <div class="carousel-track" id="trending-carousel-track">
+                        <!-- Skeleton loading items -->
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Section -->
+        <section class="popular-section" id="popular-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <div>
+                        <span class="section-category">Highly Rated</span>
+                        <h2 class="section-title">Popular Choices</h2>
+                    </div>
+                </div>
+
+                <div class="cards-grid" id="popular-grid">
+                    <!-- Skeleton loading cards -->
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p class="footer-text">Made with <span class="heart-icon">❤️</span> using Flask and Machine Learning</p>
+            <div class="footer-socials">
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub"><i class="fa-brands fa-github"></i> GitHub</a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+            </div>
+            <p class="footer-copyright">&copy; 2026 CineMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Movie Details Modal -->
+    <div class="modal" id="movie-detail-modal">
+        <div class="modal-backdrop" id="modal-backdrop-close"></div>
+        <div class="modal-wrapper">
+            <button class="modal-close-btn" id="modal-close-btn" aria-label="Close Modal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Dynamically populated details -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Trailer Modal (Nested or separate) -->
+    <div class="modal" id="trailer-modal">
+        <div class="modal-backdrop" id="trailer-backdrop-close"></div>
+        <div class="modal-wrapper video-modal-wrapper">
+            <button class="modal-close-btn" id="trailer-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <div class="video-container" id="trailer-video-container">
+                <!-- iframe injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Core Script -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
