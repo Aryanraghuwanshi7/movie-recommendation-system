@@ -19,7 +19,7 @@ def load_models():
     
     if not os.path.exists(movies_path) or not os.path.exists(similarity_path):
         raise FileNotFoundError(
-            f"Pickle files not found at:\n - {movies_path}\n - {similarity_path}\nPlease run train_model.py first."
+            f"Pre-trained model pickle files not found at:\n - {movies_path}\n - {similarity_path}"
         )
         
     with open(movies_path, 'rb') as f:
@@ -37,8 +37,8 @@ def get_movie_suggestions(query, limit=10):
         return []
     
     query_clean = query.strip().lower()
-    # Filter movies containing the search query
-    matches = movies_df[movies_df['title'].str.lower().str.contains(query_clean, na=False)]
+    # Filter movies containing the search query safely (regex=False avoids regex parsing crashes)
+    matches = movies_df[movies_df['title'].str.lower().str.contains(query_clean, na=False, regex=False)]
     
     # Sort matches: exact match, starts-with match, then other matches
     def sort_key(title):
@@ -78,19 +78,22 @@ def get_trending_movies(limit=10):
 
 def row_to_dict(row, similarity_score=None):
     """Converts a DataFrame row into a serializable dictionary for API response."""
+    rel_date = str(row['release_date']) if pd.notna(row.get('release_date')) else ''
+    rel_year = rel_date.split('-')[0] if rel_date and rel_date != 'nan' else 'N/A'
+    
     return {
         'movie_id': int(row['movie_id']),
         'title': str(row['title']),
-        'overview': str(row['overview']),
-        'genres': list(row['genres_display']),
-        'cast': list(row['cast_display']),
-        'director': str(row['director']),
-        'vote_average': float(row['vote_average']),
-        'release_date': str(row['release_date']),
-        'release_year': str(row['release_date']).split('-')[0] if pd.notna(row['release_date']) else 'N/A',
-        'runtime': float(row['runtime']) if pd.notna(row['runtime']) else 0.0,
-        'original_language': str(row['original_language']).upper(),
-        'popularity': float(row['popularity']),
+        'overview': str(row['overview']) if pd.notna(row.get('overview')) else '',
+        'genres': list(row['genres_display']) if isinstance(row.get('genres_display'), (list, tuple)) else [],
+        'cast': list(row['cast_display']) if isinstance(row.get('cast_display'), (list, tuple)) else [],
+        'director': str(row['director']) if pd.notna(row.get('director')) else '',
+        'vote_average': float(row['vote_average']) if pd.notna(row.get('vote_average')) else 0.0,
+        'release_date': rel_date,
+        'release_year': rel_year,
+        'runtime': float(row['runtime']) if pd.notna(row.get('runtime')) else 0.0,
+        'original_language': str(row['original_language']).upper() if pd.notna(row.get('original_language')) else '',
+        'popularity': float(row['popularity']) if pd.notna(row.get('popularity')) else 0.0,
         'similarity_score': float(similarity_score) if similarity_score is not None else None
     }
 

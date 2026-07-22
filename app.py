@@ -1,6 +1,7 @@
+import os
+import traceback
 from flask import Flask, render_template, request, jsonify
 import model
-import traceback
 
 app = Flask(__name__)
 
@@ -78,6 +79,7 @@ def page_not_found(e):
     return render_template('index.html'), 200 # SPA fallback
 
 if __name__ == '__main__':
-    # Running development server on default port 5001
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)
+
 

@@ -1,35 +1,33 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual Environment
+# Virtual Environments
 venv/
 .venv/
 env/
+ENV/
 
 # Jupyter
 .ipynb_checkpoints/
-models/similarity.pkl
+
 # macOS
 .DS_Store
 
-# VS Code
+# IDEs
 .vscode/
+.idea/
 
 # Environment variables
 .env
+.env.local
 
 # Logs
 *.log
 
-# Python cache
+# Python cache & build files
 .pytest_cache/
-
-# Build files
 build/
 dist/
 *.egg-info/
-
-# Streamlit (only if you used Streamlit)
-.streamlit/
