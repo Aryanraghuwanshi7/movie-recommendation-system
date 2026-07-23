@@ -4,9 +4,28 @@
  * TMDB Poster & Trailer integration, Favorites and Search History, Carousel controls
  */
 
-// TMDB Config
-const TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8';
+// TMDB Config - key is loaded dynamically from the server at startup
+let TMDB_API_KEY = '';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+
+/**
+ * Fetches the TMDB API key from the Flask backend (reads from TMDB_API_KEY env var).
+ * Must be called before any TMDB API requests.
+ */
+async function initTmdbApiKey() {
+    try {
+        const res = await fetch('/api/tmdb-config');
+        if (!res.ok) throw new Error(`Config fetch failed: ${res.status}`);
+        const data = await res.json();
+        if (data.apiKey && data.apiKey.length > 0) {
+            TMDB_API_KEY = data.apiKey;
+        } else {
+            console.warn('TMDB_API_KEY is not configured on the server. Posters will use fallback images.');
+        }
+    } catch (e) {
+        console.warn('Could not load TMDB config from server:', e.message);
+    }
+}
 
 
 // State Variables
@@ -69,8 +88,11 @@ let activeSuggestionIndex = -1;
    Initialization
    ========================================================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Load Landing Page content
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load TMDB API key from server env FIRST (must complete before poster fetches)
+    await initTmdbApiKey();
+
+    // Load Landing Page content (posters will now use the valid key)
     fetchPopularMovies();
     fetchTrendingMovies();
     

@@ -188,6 +188,12 @@ def trending_movies():
         app.logger.error(f"Error loading trending movies: {e}\n{traceback.format_exc()}")
         return jsonify({"error": "Internal server error"}), 500
 
+@app.route('/api/tmdb-config', methods=['GET'])
+def tmdb_config():
+    """Returns TMDB API key from environment variable to the frontend."""
+    api_key = os.environ.get('TMDB_API_KEY', '')
+    return jsonify({'apiKey': api_key})
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('index.html'), 200
